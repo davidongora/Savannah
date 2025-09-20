@@ -26,16 +26,6 @@
   ],
   "env": {
     "DEBUG": "False",
-    "SECRET_KEY": "@secret_key",
-    "ALLOWED_HOSTS": ".vercel.app",
-    "POSTGRES_HOST": "@postgres_host",
-    "POSTGRES_DB": "@postgres_db",
-    "POSTGRES_USER": "@postgres_user",
-    "POSTGRES_PASSWORD": "@postgres_password",
-    "POSTGRES_PORT": "5432",
-    "AFRICAS_TALKING_API_KEY": "@africas_talking_api_key",
-    "AFRICAS_TALKING_USERNAME": "@africas_talking_username",
-    "AFRICAS_TALKING_SANDBOX": "True",
     "DJANGO_SETTINGS_MODULE": "savannah_test.settings"
   },
   "build": {
