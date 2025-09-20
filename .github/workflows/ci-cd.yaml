@@ -76,13 +76,9 @@ jobs:
           POSTGRES_PASSWORD: test_password
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          DEBUG: "True"
+          DEBUG: "False"
           SECRET_KEY: test-secret-key
-          OIDC_RP_CLIENT_ID: test-client-id
-          OIDC_RP_CLIENT_SECRET: test-client-secret
-          AFRICAS_TALKING_API_KEY: test-api-key
-          AFRICAS_TALKING_USERNAME: test-username
-          AFRICAS_TALKING_SANDBOX: "True"
+          DJANGO_SETTINGS_MODULE: savannah_test.test_settings
           # Disable external HTTP calls during testing
           TESTING: "True"
         run: |
