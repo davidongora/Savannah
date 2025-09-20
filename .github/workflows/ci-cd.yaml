@@ -62,7 +62,11 @@ jobs:
         env:
           PGPASSWORD: test_password
         run: |
-          psql -h localhost -U test_user -d test_db -f database/customer_order_db.sql
+          echo "Setting up database schema..."
+          psql -h localhost -U test_user -d test_db -f database/schema_ci.sql
+          echo "Schema setup completed"
+          echo "Verifying tables exist..."
+          psql -h localhost -U test_user -d test_db -c "\dt"
 
       - name: Run tests with coverage
         env:
@@ -79,6 +83,8 @@ jobs:
           AFRICAS_TALKING_API_KEY: test-api-key
           AFRICAS_TALKING_USERNAME: test-username
           AFRICAS_TALKING_SANDBOX: "True"
+          # Disable external HTTP calls during testing
+          TESTING: "True"
         run: |
           cd savannah_test
           coverage run --source='.' manage.py test

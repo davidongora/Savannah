@@ -51,13 +51,15 @@ class URLTestCase(TestCase):
         self.assertEqual(resolved.view_name, 'orders-by-customer')
         self.assertEqual(str(resolved.kwargs['customer_id']), test_customer_id)
     
-    def test_jwt_urls(self):
-        """Test JWT authentication URLs"""
-        url = reverse('token_obtain_pair')
-        self.assertEqual(url, '/api/auth/token/')
+    def test_oidc_urls(self):
+        """Test OIDC authentication URLs"""
+        # Test OAuth2 provider URLs
+        resolved = resolve('/o/')
+        self.assertEqual(resolved.namespace, 'oauth2_provider')
         
-        url = reverse('token_refresh')
-        self.assertEqual(url, '/api/auth/token/refresh/')
+        # Test OIDC URLs  
+        resolved = resolve('/oidc/')
+        # OIDC URLs are included but may not have a specific namespace
     
     def test_admin_url(self):
         """Test admin URL"""

@@ -18,7 +18,13 @@ def send_sms_notification(order_data):
     return send_sms(phone_number, message)
 
 def send_sms(phone_number, message):
-    """Send SMS using Africa's Talking API"""
+    import os
+    
+    # Skip SMS sending during testing
+    if os.getenv('TESTING') == 'True':
+        print(f"TEST MODE: Would send SMS to {phone_number}: {message}")
+        return {"status": "test", "message": "SMS sent in test mode"}
+    
     api_key = settings.AFRICAS_TALKING_API_KEY
     username = settings.AFRICAS_TALKING_USERNAME
     sandbox = settings.AFRICAS_TALKING_SANDBOX
