@@ -23,12 +23,12 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -39,6 +39,11 @@ jobs:
       - name: Run migrations
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
           DEBUG: "True"
         run: |
           cd savannah_test
@@ -53,8 +58,18 @@ jobs:
       - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
           DEBUG: "True"
           SECRET_KEY: test-secret-key
+          OIDC_RP_CLIENT_ID: test-client-id
+          OIDC_RP_CLIENT_SECRET: test-client-secret
+          AFRICAS_TALKING_API_KEY: test-api-key
+          AFRICAS_TALKING_USERNAME: test-username
+          AFRICAS_TALKING_SANDBOX: "True"
         run: |
           cd savannah_test
           coverage run --source='.' manage.py test
@@ -71,7 +86,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Deploy to production
         run: |
