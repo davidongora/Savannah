@@ -16,6 +16,8 @@ jobs:
           POSTGRES_DB: test_db
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -35,6 +37,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r savannah_test/requirements.txt
           pip install coverage pytest pytest-django
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U test_user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
 
       - name: Run migrations
         env:
