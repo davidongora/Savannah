@@ -4,14 +4,14 @@ A Django REST API service for managing customers and orders with SMS notificatio
 
 ## Features
 
-- 🏪 Customer management (CRUD operations)
-- 📦 Order management with customer relationships
-- 🔐 OpenID Connect (OIDC) authentication
-- 📱 SMS notifications via Africa's Talking
-- 🗄️ PostgreSQL database with raw SQL queries
-- 🐳 Docker containerization
-- ✅ Comprehensive unit tests with coverage
-- 🌐 RESTful API design
+- Customer management (CRUD operations)
+- Order management with customer relationships
+- OpenID Connect (OIDC) authentication
+- SMS notifications via Africa's Talking
+- PostgreSQL database with raw SQL queries
+- Docker containerization
+- Comprehensive unit tests with coverage
+- RESTful API design
 
 ## Tech Stack
 
