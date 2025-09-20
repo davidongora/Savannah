@@ -50,14 +50,10 @@ jobs:
           PGPASSWORD: test_password
         run: |
           echo "Setting up database schema..."
-          ls -la database/
           psql -h localhost -U test_user -d test_db -f database/schema_ci.sql
           echo "Schema setup completed"
           echo "Verifying tables exist..."
           psql -h localhost -U test_user -d test_db -c "\dt"
-          echo "Verifying table structures..."
-          psql -h localhost -U test_user -d test_db -c "\d customers"
-          psql -h localhost -U test_user -d test_db -c "\d orders"
 
       - name: Run tests with coverage
         env:
