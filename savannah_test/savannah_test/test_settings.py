@@ -38,6 +38,17 @@ CACHES = {
     }
 }
 
+# Disable migrations for testing since we use raw SQL schema
+MIGRATION_MODULES = {
+    'customers': None,
+    'orders': None,
+    'auth': None,
+    'contenttypes': None,
+    'sessions': None,
+    'admin': None,
+    'oauth2_provider': None,
+}
+
 # Test-safe external service settings
 AFRICAS_TALKING_API_KEY = 'test-key'
 AFRICAS_TALKING_USERNAME = 'test-username'

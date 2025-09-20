@@ -239,7 +239,7 @@ class OrderAPITestCase(APITestCase):
     
     def test_unauthenticated_access(self):
         """Test that unauthenticated requests are rejected"""
-        self.client.credentials()
+        self.client.credentials(HTTP_X_DISABLE_AUTH='true')
         
         url = reverse('order-list')
         response = self.client.get(url)

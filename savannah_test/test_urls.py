@@ -53,12 +53,15 @@ class URLTestCase(TestCase):
     
     def test_oidc_urls(self):
         """Test OIDC authentication URLs"""
-        # Test OAuth2 provider URLs
-        resolved = resolve('/o/')
+        # Test OAuth2 provider URLs - need to test specific endpoints
+        resolved = resolve('/o/authorize/')
         self.assertEqual(resolved.namespace, 'oauth2_provider')
         
-        # Test OIDC URLs  
-        resolved = resolve('/oidc/')
+        resolved = resolve('/o/token/')
+        self.assertEqual(resolved.namespace, 'oauth2_provider')
+        
+        # Test OIDC login endpoint
+        resolved = resolve('/oidc/authenticate/')
         # OIDC URLs are included but may not have a specific namespace
     
     def test_admin_url(self):

@@ -45,31 +45,19 @@ jobs:
             sleep 2
           done
 
-      # If you use a raw schema file, run it BEFORE migrations
-      - name: Setup database schema (optional)
-        if: ${{ exists('database/schema_ci.sql') }}
+      - name: Setup database schema
         env:
           PGPASSWORD: test_password
         run: |
           echo "Setting up database schema..."
+          ls -la database/
           psql -h localhost -U test_user -d test_db -f database/schema_ci.sql
           echo "Schema setup completed"
           echo "Verifying tables exist..."
           psql -h localhost -U test_user -d test_db -c "\dt"
-
-      # Always run migrations after schema setup
-      - name: Run migrations
-        env:
-          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          DEBUG: "True"
-        run: |
-          cd savannah_test
-          python manage.py migrate --noinput
+          echo "Verifying table structures..."
+          psql -h localhost -U test_user -d test_db -c "\d customers"
+          psql -h localhost -U test_user -d test_db -c "\d orders"
 
       - name: Run tests with coverage
         env:
