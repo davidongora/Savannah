@@ -45,6 +45,19 @@ jobs:
             sleep 2
           done
 
+      # If you use a raw schema file, run it BEFORE migrations
+      - name: Setup database schema (optional)
+        if: ${{ exists('database/schema_ci.sql') }}
+        env:
+          PGPASSWORD: test_password
+        run: |
+          echo "Setting up database schema..."
+          psql -h localhost -U test_user -d test_db -f database/schema_ci.sql
+          echo "Schema setup completed"
+          echo "Verifying tables exist..."
+          psql -h localhost -U test_user -d test_db -c "\dt"
+
+      # Always run migrations after schema setup
       - name: Run migrations
         env:
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
@@ -56,17 +69,7 @@ jobs:
           DEBUG: "True"
         run: |
           cd savannah_test
-          python manage.py migrate
-
-      - name: Setup database schema
-        env:
-          PGPASSWORD: test_password
-        run: |
-          echo "Setting up database schema..."
-          psql -h localhost -U test_user -d test_db -f database/schema_ci.sql
-          echo "Schema setup completed"
-          echo "Verifying tables exist..."
-          psql -h localhost -U test_user -d test_db -c "\dt"
+          python manage.py migrate --noinput
 
       - name: Run tests with coverage
         env:
@@ -79,7 +82,6 @@ jobs:
           DEBUG: "False"
           SECRET_KEY: test-secret-key
           DJANGO_SETTINGS_MODULE: savannah_test.test_settings
-          # Disable external HTTP calls during testing
           TESTING: "True"
         run: |
           cd savannah_test
