@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 
 def send_sms_notification(order_data):
-    """Send SMS notification for new order"""
+    """Send SMS notification for new order using Mobile Sasa API"""
     phone_number = order_data.get('customer_phone')
     customer_name = order_data.get('customer_name')
     item = order_data.get('item')
@@ -18,6 +18,7 @@ def send_sms_notification(order_data):
     return send_sms(phone_number, message)
 
 def send_sms(phone_number, message):
+    """Send SMS using Mobile Sasa API"""
     import os
     
     # Skip SMS sending during testing
@@ -25,37 +26,49 @@ def send_sms(phone_number, message):
         print(f"TEST MODE: Would send SMS to {phone_number}: {message}")
         return {"status": "test", "message": "SMS sent in test mode"}
     
-    api_key = settings.AFRICAS_TALKING_API_KEY
-    username = settings.AFRICAS_TALKING_USERNAME
-    sandbox = settings.AFRICAS_TALKING_SANDBOX
+    # Mobile Sasa API configuration
+    api_token = getattr(settings, 'MOBILE_SASA_API_TOKEN', None)
+    sender_id = getattr(settings, 'MOBILE_SASA_SENDER_ID', 'MOBILESASA')
     
-    if not all([api_key, username]):
-        print("SMS credentials not configured. Skipping SMS send.")
+    if not api_token:
+        print("Mobile Sasa API token not configured. Skipping SMS send.")
         return None
-        
-    base_url = "https://api.sandbox.africastalking.com" if sandbox else "https://api.africastalking.com"
+    
+    # Mobile Sasa API endpoint
+    api_url = "https://api.mobilesasa.com/v1/send/message"
     
     headers = {
         "Accept": "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "apiKey": api_key
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_token}"
     }
     
-    data = {
-        "username": username,
-        "to": phone_number,
+    # Ensure phone number is in correct format (remove + if present)
+    clean_phone = phone_number.replace('+', '')
+    
+    payload = {
+        "senderID": sender_id,
         "message": message,
-        "from": "OrderService"
+        "phone": clean_phone
     }
     
     try:
         response = requests.post(
-            f"{base_url}/version1/messaging",
+            api_url,
             headers=headers,
-            data=data
+            json=payload
         )
-        response.raise_for_status()
-        return response.json()
+        
+        print(f"Mobile Sasa SMS Response: {response.status_code} - {response.text}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"SMS sent successfully to {phone_number}")
+            return result
+        else:
+            print(f"Failed to send SMS: {response.status_code} - {response.text}")
+            return None
+            
     except Exception as e:
-        print(f"Failed to send SMS: {e}")
+        print(f"Error sending SMS via Mobile Sasa: {e}")
         return None

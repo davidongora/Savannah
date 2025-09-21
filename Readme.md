@@ -7,7 +7,7 @@ A simplified Django REST API service for managing customers and orders with SMS 
 - Customer management (CRUD operations)
 - Order management with customer relationships
 - OpenID Connect (OIDC) authentication
-- SMS notifications via Africa's Talking
+- SMS notifications via Mobile Sasa
 - PostgreSQL database with raw SQL queries (no Django models)
 - GitHub Actions CI/CD with automated deployment
 - Unit tests with coverage
@@ -23,12 +23,12 @@ A simplified Django REST API service for managing customers and orders with SMS 
 1. ✅ **Database Design**: Simple customers and orders tables with raw SQL
 1. ✅ **REST API**: CRUD endpoints for customers and orders with JSON responses
 1. ✅ **OIDC Authentication**: OpenID Connect authentication and authorization
-1. ✅ **SMS Integration**: Africa's Talking SMS notifications on order creation
+1. ✅ **SMS Integration**: Mobile Sasa SMS notifications on order creation
 1. ✅ **Testing & CI/CD**: Unit tests with pytest and GitHub Actions pipeline
 1. ✅ **Documentation**: Complete README with API docs and deployment guide Framework
 - **Database**: PostgreSQL with raw SQL queries
 - **Authentication**: OpenID Connect (OIDC) via django-oauth-toolkit
-- **SMS Service**: Africa's Talking Gateway
+- **SMS Service**: Mobile Sasa SMS Gateway
 - **Deployment**: Automated CI/CD to VPS server
 - **Testing**: pytest with coverage reporting
 
@@ -38,7 +38,7 @@ A simplified Django REST API service for managing customers and orders with SMS 
 
 - Python 3.11+
 - PostgreSQL database
-- Africa's Talking account (for SMS functionality)
+- Mobile Sasa account (for SMS functionality)
 - Server with SSH access (for deployment)
 
 ### 1. Clone and Setup
@@ -74,9 +74,8 @@ export POSTGRES_DB=customer_order_db
 export POSTGRES_USER=your_user
 export POSTGRES_PASSWORD=your_password
 export SECRET_KEY=your_secret_key_here
-export AFRICAS_TALKING_API_KEY=your_api_key_here
-export AFRICAS_TALKING_USERNAME=your_username_here
-export AFRICAS_TALKING_SANDBOX=True
+export MOBILE_SASA_API_TOKEN=your_api_token_here
+export MOBILE_SASA_SENDER_ID=your_sender_id_here
 ```
 
 ### 5. Run the Application
@@ -552,9 +551,8 @@ export POSTGRES_DB=customer_order_db
 export POSTGRES_USER=postgres
 export POSTGRES_PASSWORD=password
 export SECRET_KEY=your-secret-key
-export AFRICAS_TALKING_API_KEY=your-api-key
-export AFRICAS_TALKING_USERNAME=your-username
-export AFRICAS_TALKING_SANDBOX=True
+export MOBILE_SASA_API_TOKEN=your-api-token
+export MOBILE_SASA_SENDER_ID=your-sender-id
 ```
 
 1. **Run Development Server:**
@@ -574,6 +572,48 @@ python -m pytest --cov=. --cov-report=html
 
 # Run specific test file
 python -m pytest customers/tests.py -v
+```
+
+## CI/CD Deployment
+
+The application uses GitHub Actions for automated testing and deployment to the VPS server.
+
+### Required GitHub Secrets
+
+Set up these secrets in your GitHub repository (Settings → Secrets and Variables → Actions):
+
+| Secret Name | Description | Example Value |
+|-------------|-------------|---------------|
+| `SSH_HOST` | VPS server IP address | `185.240.51.176` |
+| `SSH_USER` | SSH username for server | `root` |
+| `SSH_PRIVATE_KEY` | Private SSH key for server access | `-----BEGIN OPENSSH PRIVATE KEY-----...` |
+| `MOBILE_SASA_API_TOKEN` | Mobile Sasa SMS API token | '' |
+
+### Deployment Process
+
+1. **Trigger**: Push to `main` branch or create pull request
+2. **Test Phase**: 
+   - Sets up PostgreSQL database
+   - Runs full test suite with coverage
+   - Validates database schema
+3. **Deploy Phase** (main branch only):
+   - Connects to VPS server via SSH
+   - Copies application files
+   - Installs dependencies
+   - Sets up environment variables
+   - Restarts Django service
+   - Validates deployment
+
+### Manual Deployment Script
+
+You can also deploy manually using the deployment script:
+
+```bash
+# Make the script executable
+chmod +x deploy.sh
+
+# Run deployment
+./deploy.sh
 ```
 
 ## Database Schema
@@ -603,7 +643,7 @@ CREATE TABLE orders (
 
 ## SMS Notification
 
-When an order is created, the system automatically sends an SMS notification to the customer using Africa's Talking SMS gateway. The SMS contains:
+When an order is created, the system automatically sends an SMS notification to the customer using Mobile Sasa SMS gateway. The SMS contains:
 
 - Customer name
 - Order item

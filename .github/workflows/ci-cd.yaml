@@ -102,8 +102,9 @@ jobs:
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
+          MOBILE_SASA_API_TOKEN: ${{ secrets.MOBILE_SASA_API_TOKEN }}
         run: |
-          echo " Starting deployment to VPS server..."
+          echo "🚀 Starting deployment to VPS server..."
 
           # Copy Django project files
           scp -r -o StrictHostKeyChecking=no \
@@ -116,27 +117,51 @@ jobs:
           # Copy requirements.txt
           scp -o StrictHostKeyChecking=no requirements.txt $SSH_USER@$SSH_HOST:/var/www/savannah/
 
-          # Install dependencies and restart service
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
-            echo " Installing dependencies..."
+          # Deploy with environment setup
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << EOF
+            echo "📦 Installing dependencies..."
             cd /var/www/savannah
             pip3 install -r requirements.txt --quiet
             
-            echo " Restarting Django service..."
+            echo "⚙️ Setting up environment variables..."
+            cat > /var/www/savannah/savannah_test/.env << 'ENVEOF'
+          MOBILE_SASA_API_TOKEN=$MOBILE_SASA_API_TOKEN
+          MOBILE_SASA_SENDER_ID=MOBILESASA
+          SECRET_KEY=django-production-secret-key-2024
+          POSTGRES_HOST=localhost
+          POSTGRES_PORT=5432
+          POSTGRES_DB=customer_order_db
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=root
+          DEBUG=False
+          ENVEOF
+            
+            echo "🔄 Restarting Django service..."
             pkill -f 'python3 manage.py runserver' || true
             sleep 2
+            
             cd /var/www/savannah/savannah_test
-            nohup python3 manage.py runserver 0.0.0.0:8003 > /dev/null 2>&1 &
+            export MOBILE_SASA_API_TOKEN=$MOBILE_SASA_API_TOKEN
+            export MOBILE_SASA_SENDER_ID=MOBILESASA
+            export SECRET_KEY=django-production-secret-key-2024
+            export POSTGRES_HOST=localhost
+            export POSTGRES_PORT=5432
+            export POSTGRES_DB=customer_order_db
+            export POSTGRES_USER=postgres
+            export POSTGRES_PASSWORD=root
+            export DEBUG=False
+            
+            nohup python3 manage.py runserver 0.0.0.0:8003 > django.log 2>&1 &
             sleep 3
             
-            echo " Checking service status..."
+            echo "🔍 Checking service status..."
             if curl -s -o /dev/null -w '%{http_code}' http://localhost:8003/api/auth/oidc-info/ | grep -q "200"; then
-              echo " Deployment successful - Service is running"
+              echo "✅ Deployment successful - Service is running"
             else
-              echo " Service may not be responding"
+              echo "❌ Service may not be responding"
               exit 1
             fi
           EOF
 
-          echo " Deployment completed successfully!"
-          echo "Application is available at: http://$SSH_HOST:8003"
+          echo "🎉 Deployment completed successfully!"
+          echo "🌐 Application is available at: http://$SSH_HOST:8003"

@@ -128,10 +128,9 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-# Africa's Talking SMS Configuration
-AFRICAS_TALKING_API_KEY = os.getenv('AFRICAS_TALKING_API_KEY')
-AFRICAS_TALKING_USERNAME = os.getenv('AFRICAS_TALKING_USERNAME')
-AFRICAS_TALKING_SANDBOX = os.getenv('AFRICAS_TALKING_SANDBOX', 'True').lower() == 'true'
+# Mobile Sasa SMS Configuration
+MOBILE_SASA_API_TOKEN = os.getenv('MOBILE_SASA_API_TOKEN')
+MOBILE_SASA_SENDER_ID = os.getenv('MOBILE_SASA_SENDER_ID', 'MOBILESASA')
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -191,7 +190,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-AFRICAS_TALKING_API_KEY = os.getenv('AFRICAS_TALKING_API_KEY')
-AFRICAS_TALKING_USERNAME = os.getenv('AFRICAS_TALKING_USERNAME')
-AFRICAS_TALKING_SANDBOX = os.getenv('AFRICAS_TALKING_SANDBOX', 'True') == 'True'
