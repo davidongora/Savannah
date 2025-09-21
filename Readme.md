@@ -1,6 +1,6 @@
 # Savannah Customer Orders API
 
-A Django REST API service for managing customers and orders with SMS notifications. Built with PostgreSQL database and Africa's Talking SMS gateway integration.
+A simplified Django REST API service for managing customers and orders with SMS notifications. Built with PostgreSQL database using raw SQL queries and OpenID Connect authentication.
 
 ## Features
 
@@ -8,139 +8,132 @@ A Django REST API service for managing customers and orders with SMS notificatio
 - Order management with customer relationships
 - OpenID Connect (OIDC) authentication
 - SMS notifications via Africa's Talking
-- PostgreSQL database with raw SQL queries
-- Docker containerization
-- Comprehensive unit tests with coverage
+- PostgreSQL database with raw SQL queries (no Django models)
+- GitHub Actions CI/CD with automated deployment
+- Unit tests with coverage
 - RESTful API design
 
 ## Tech Stack
 
-- **Backend**: Django 5.2.6 + Django REST Framework
-- **Database**: PostgreSQL 14 with UUID primary keys
-- **Authentication**: OpenID Connect (OIDC)
+- **Backend**: Django 4.2.## Requirements Checklist
+
+✅ **All 7 requirements completed successfully:**
+
+1. ✅ **Python Service**: Django 4.2.7 REST API with PostgreSQL
+1. ✅ **Database Design**: Simple customers and orders tables with raw SQL
+1. ✅ **REST API**: CRUD endpoints for customers and orders with JSON responses
+1. ✅ **OIDC Authentication**: OpenID Connect authentication and authorization
+1. ✅ **SMS Integration**: Africa's Talking SMS notifications on order creation
+1. ✅ **Testing & CI/CD**: Unit tests with pytest and GitHub Actions pipeline
+1. ✅ **Documentation**: Complete README with API docs and deployment guide Framework
+- **Database**: PostgreSQL with raw SQL queries
+- **Authentication**: OpenID Connect (OIDC) via django-oauth-toolkit
 - **SMS Service**: Africa's Talking Gateway
-- **Containerization**: Docker & Docker Compose
+- **Deployment**: Automated CI/CD to VPS server
 - **Testing**: pytest with coverage reporting
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- Python 3.12+ (for local development)
+- Python 3.11+
+- PostgreSQL database
 - Africa's Talking account (for SMS functionality)
+- Server with SSH access (for deployment)
 
 ### 1. Clone and Setup
 
 ```bash
-git clone <repository-url>
-cd savannah
+git clone https://github.com/davidongora/Savannah.git
+cd Savannah/savannah_test
 ```
 
-### 2. Environment Configuration
-
-Copy the environment example file:
+### 2. Install Dependencies
 
 ```bash
-cp Docker/.env.example Docker/.env
+pip install -r requirements.txt
 ```
 
-Edit `Docker/.env` with your configuration:
+### 3. Database Setup
 
-```dotenv
-# Database Configuration
-POSTGRES_DB=customer_order_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_secure_password
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
-
-# Django Configuration
-DEBUG=False
-SECRET_KEY=your_secret_key_here
-
-# Africa's Talking SMS Configuration
-AFRICAS_TALKING_API_KEY=your_api_key_here
-AFRICAS_TALKING_USERNAME=your_username_here
-AFRICAS_TALKING_SANDBOX=True
-```
-
-### 3. Run with Docker
+The application uses raw SQL queries instead of Django models. Create the database schema:
 
 ```bash
-cd Docker
-docker-compose up -d
+# Connect to your PostgreSQL database
+psql -h your_host -U your_user -d customer_order_db -f ../database/customer_order_db.sql
 ```
 
-The API will be available at `http://localhost:8000`
+### 4. Environment Configuration
 
-### 4. Setup OAuth2 Application for OIDC
-
-Create an OAuth2 application for OpenID Connect authentication:
+Set the required environment variables:
 
 ```bash
-# Create superuser first (if not already created)
-docker-compose exec web python manage.py createsuperuser
-
-# Setup OAuth2 application
-docker-compose exec web python manage.py setup_oauth
+export POSTGRES_HOST=your_database_host
+export POSTGRES_PORT=5432
+export POSTGRES_DB=customer_order_db
+export POSTGRES_USER=your_user
+export POSTGRES_PASSWORD=your_password
+export SECRET_KEY=your_secret_key_here
+export AFRICAS_TALKING_API_KEY=your_api_key_here
+export AFRICAS_TALKING_USERNAME=your_username_here
+export AFRICAS_TALKING_SANDBOX=True
 ```
 
-This command will create an OAuth2 application and display the client credentials:
-
-```text
-OAuth2 Application created successfully!
-Client ID: BlCsN7kGpNohIxA9P4UiPeVcY0P5Nt5aWvWcUq0O
-Client Secret: [Generated Secret]
-Authorization Grant Type: authorization-code
-Client Type: confidential
-```
-
-**Important**: Save these credentials securely - you'll need them for OIDC authentication.
-
-### 5. OIDC Environment Variables
-
-Add these OIDC configuration variables to your `Docker/.env` file:
-
-```dotenv
-# OpenID Connect Configuration
-OIDC_RP_CLIENT_ID=BlCsN7kGpNohIxA9P4UiPeVcY0P5Nt5aWvWcUq0O
-OIDC_RP_CLIENT_SECRET=your_generated_client_secret
-OIDC_OP_AUTHORIZATION_ENDPOINT=http://localhost:8000/o/authorize/
-OIDC_OP_TOKEN_ENDPOINT=http://localhost:8000/o/token/
-OIDC_OP_USER_ENDPOINT=http://localhost:8000/o/userinfo/
-OIDC_OP_JWKS_ENDPOINT=http://localhost:8000/o/.well-known/jwks.json
-OIDC_RP_SCOPES=openid profile email
-OIDC_RP_SIGN_ALGO=HS256
-```
-
-### 6. Create Superuser (Optional)
+### 5. Run the Application
 
 ```bash
-docker-compose exec web python manage.py createsuperuser
+python manage.py runserver 0.0.0.0:8003
 ```
+
+The API will be available at `http://localhost:8003`
+
+### 6. Setup OIDC Authentication
+
+Access the setup page to configure OpenID Connect:
+
+```
+http://localhost:8003/api/auth/setup-oidc/
+```
+
+This will create the necessary OAuth2 application for OIDC authentication.
 
 ## API Documentation
 
 ### Base URL
 
 ```
-http://localhost:8000/api
+http://185.240.51.176:8003/api
 ```
 
 ### Authentication
 
-The API uses **OpenID Connect (OIDC)** for authentication, which is built on OAuth2.
+The API uses **OpenID Connect (OIDC)** for authentication.
 
-All endpoints (except authentication and discovery) require valid OIDC authentication credentials.
+#### Getting an Access Token for API Testing
 
-For OIDC authentication, include the Bearer token in the Authorization header:
+1. **Get a test token** (for development/testing):
 
-```http
-Authorization: Bearer <your_oidc_access_token>
+```bash
+# Get access token for API testing
+curl -X POST http://185.240.51.176:8003/api/auth/test-token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "your_username", "password": "your_password"}'
 ```
 
-**Note**: While the underlying infrastructure uses OAuth2 for OIDC implementation, the API is designed to be consumed using standard OpenID Connect flows.
+2. **Use the token** in API requests:
+
+```bash
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  http://185.240.51.176:8003/api/customers/
+```
+
+#### OIDC Authentication Flow
+
+For production applications, use the standard OIDC flow:
+
+1. **Authorization**: Direct users to `/o/authorize/` with appropriate parameters
+2. **Token Exchange**: Exchange authorization code at `/o/token/`
+3. **API Access**: Use the access token in Authorization header
 
 ---
 
@@ -530,36 +523,29 @@ Retrieve all orders for a specific customer using URL parameter.
 
 ```bash
 cd savannah_test
-python -m venv myvenv
-source myvenv/bin/activate  # On Windows: myvenv\Scripts\activate
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-2. **Install Dependencies:**
+1. **Install Dependencies:**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Setup Database:**
+1. **Setup Database:**
 
 ```bash
-# Start PostgreSQL with Docker
-docker run -d \
-  --name savannah-postgres \
-  -e POSTGRES_DB=customer_order_db \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=password \
-  -p 5432:5432 \
-  postgres:14
+# Create PostgreSQL database
+createdb customer_order_db
 
-# Run database schema
-psql -h localhost -U postgres -d customer_order_db -f ../database/customer_order_db.sql
+# Run database schema (creates tables and sample data)
+psql -d customer_order_db -f ../database/customer_order_db.sql
 ```
 
-4. **Environment Variables:**
+1. **Environment Variables:**
 
 ```bash
-export DJANGO_SETTINGS_MODULE=savannah_test.settings
 export POSTGRES_HOST=localhost
 export POSTGRES_PORT=5432
 export POSTGRES_DB=customer_order_db
@@ -571,7 +557,7 @@ export AFRICAS_TALKING_USERNAME=your-username
 export AFRICAS_TALKING_SANDBOX=True
 ```
 
-5. **Run Development Server:**
+1. **Run Development Server:**
 
 ```bash
 python manage.py runserver
@@ -596,12 +582,10 @@ python -m pytest customers/tests.py -v
 
 ```sql
 CREATE TABLE customers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id SERIAL PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    phone VARCHAR(20) NOT NULL
 );
 ```
 
@@ -609,13 +593,11 @@ CREATE TABLE customers (
 
 ```sql
 CREATE TABLE orders (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+    id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(id),
     item VARCHAR(200) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
-    order_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
@@ -630,9 +612,50 @@ When an order is created, the system automatically sends an SMS notification to 
 
 **Example SMS:**
 
-```
+```text
 Hello John Doe! Your order for Laptop Computer worth KES 1299.99 has been received. Thank you!
 ```
+
+## Deployment
+
+### Automated CI/CD
+
+The application uses GitHub Actions for automated testing and deployment:
+
+1. **Testing**: Runs on every push and pull request
+   - Sets up PostgreSQL test database
+   - Installs dependencies
+   - Runs unit tests with pytest
+
+2. **Deployment**: Automatically deploys to VPS server on push to `main` branch
+   - Copies files to server via SCP
+   - Installs/updates dependencies
+   - Restarts Django service
+   - Verifies deployment
+
+### GitHub Secrets Setup
+
+For automated deployment, configure these secrets in your GitHub repository:
+
+```text
+SSH_PRIVATE_KEY  # Private SSH key for server access
+SSH_HOST         # Server IP address (e.g., 185.240.51.176)
+SSH_USER         # Server username (e.g., root)
+```
+
+### Manual Deployment
+
+You can also deploy manually using the deployment script:
+
+```bash
+# Make script executable
+chmod +x deploy.sh
+
+# Run deployment
+./deploy.sh
+```
+
+The application is deployed at: `http://185.240.51.176:8003`
 
 ## License
 

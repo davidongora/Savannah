@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Savannah OIDC Login</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .btn {
+        padding: 10px 20px;
+        background: #007cba;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+      .info {
+        background: #f0f0f0;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      pre {
+        background: #f8f8f8;
+        padding: 10px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Savannah OIDC Authentication</h1>
+
+      <div class="info">
+        <h3>OIDC Login Flow</h3>
+        <p>Click the button below to start the OIDC authentication flow:</p>
+        <a href="/oidc/authenticate/" class="btn">Login with OIDC</a>
+      </div>
+
+      <div class="info">
+        <h3>OIDC Configuration</h3>
+        <pre>
+Authorization Endpoint: http://185.240.51.176:8003/o/authorize/
+Token Endpoint: http://185.240.51.176:8003/o/token/
+UserInfo Endpoint: http://185.240.51.176:8003/o/userinfo/
+JWKS Endpoint: http://185.240.51.176:8003/o/.well-known/jwks.json/
+Client ID: savannah-client
+            </pre
+        >
+      </div>
+
+      <div class="info">
+        <h3>API Testing</h3>
+        <p>After authentication, you can test the APIs:</p>
+        <ul>
+          <li><a href="/api/auth/user/">User Info</a></li>
+          <li><a href="/api/customers/">Customers API</a></li>
+          <li><a href="/api/orders/">Orders API</a></li>
+        </ul>
+      </div>
+
+      <div class="info">
+        <h3>OAuth2 Admin</h3>
+        <p>
+          Manage OAuth2 applications:
+          <a href="/admin/oauth2_provider/application/">Admin Panel</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

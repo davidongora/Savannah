@@ -1,13 +1,24 @@
 import os
 from pathlib import Path
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-zn&s#*ul!1%7ag8qm+*k)_1trhqaoc!5hnvkh*5z32=sc@rz%s')
 
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') if os.getenv('ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '185.240.51.176']
+if os.getenv('ALLOWED_HOSTS'):
+    ALLOWED_HOSTS.extend(os.getenv('ALLOWED_HOSTS').split(','))
+if not DEBUG:
+    ALLOWED_HOSTS.extend(['*.vercel.app'])
 
 
 # Application definition
@@ -47,7 +58,7 @@ ROOT_URLCONF = 'savannah_test.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'core' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,16 +110,18 @@ OAUTH2_PROVIDER = {
     'OIDC_RSA_PRIVATE_KEY': os.getenv('OIDC_RSA_PRIVATE_KEY', ''),
 }
 
-OIDC_RP_CLIENT_ID = os.getenv('OIDC_RP_CLIENT_ID', 'your-client-id')
-OIDC_RP_CLIENT_SECRET = os.getenv('OIDC_RP_CLIENT_SECRET', 'your-client-secret')
-OIDC_OP_AUTHORIZATION_ENDPOINT = os.getenv('OIDC_OP_AUTHORIZATION_ENDPOINT', 'http://localhost:8000/o/authorize/')
-OIDC_OP_TOKEN_ENDPOINT = os.getenv('OIDC_OP_TOKEN_ENDPOINT', 'http://localhost:8000/o/token/')
-OIDC_OP_USER_ENDPOINT = os.getenv('OIDC_OP_USER_ENDPOINT', 'http://localhost:8000/o/userinfo/')
-OIDC_OP_JWKS_ENDPOINT = os.getenv('OIDC_OP_JWKS_ENDPOINT', 'http://localhost:8000/o/.well-known/jwks.json')
+OIDC_RP_CLIENT_ID = os.getenv('OIDC_RP_CLIENT_ID', 'savannah-client')
+OIDC_RP_CLIENT_SECRET = os.getenv('OIDC_RP_CLIENT_SECRET', 'savannah-secret')
+OIDC_OP_AUTHORIZATION_ENDPOINT = os.getenv('OIDC_OP_AUTHORIZATION_ENDPOINT', 'http://185.240.51.176:8003/o/authorize/')
+OIDC_OP_TOKEN_ENDPOINT = os.getenv('OIDC_OP_TOKEN_ENDPOINT', 'http://185.240.51.176:8003/o/token/')
+OIDC_OP_USER_ENDPOINT = os.getenv('OIDC_OP_USER_ENDPOINT', 'http://185.240.51.176:8003/o/userinfo/')
+OIDC_OP_JWKS_ENDPOINT = os.getenv('OIDC_OP_JWKS_ENDPOINT', 'http://185.240.51.176:8003/o/.well-known/jwks.json')
 OIDC_RP_SIGN_ALGO = 'RS256'
 OIDC_RP_SCOPES = 'openid profile email'
 OIDC_CREATE_USER = True
 OIDC_USERNAME_ALGO = 'mozilla_django_oidc.utils.generate_username'
+OIDC_AUTHENTICATE_CLASS = 'mozilla_django_oidc.views.OIDCAuthenticationRequestView'
+OIDC_CALLBACK_CLASS = 'mozilla_django_oidc.views.OIDCAuthenticationCallbackView'
 
 AUTHENTICATION_BACKENDS = [
     'core.oidc_auth.SavannahOIDCAuthenticationBackend',
@@ -120,6 +133,9 @@ AFRICAS_TALKING_API_KEY = os.getenv('AFRICAS_TALKING_API_KEY')
 AFRICAS_TALKING_USERNAME = os.getenv('AFRICAS_TALKING_USERNAME')
 AFRICAS_TALKING_SANDBOX = os.getenv('AFRICAS_TALKING_SANDBOX', 'True').lower() == 'true'
 
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -148,6 +164,13 @@ AUTH_PASSWORD_VALIDATORS = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://185.240.51.176:8003",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://185.240.51.176:8003",
+    "http://localhost:8003",
+    "http://127.0.0.1:8003",
 ]
 
 LANGUAGE_CODE = 'en-us'

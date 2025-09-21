@@ -55,27 +55,29 @@ jobs:
           echo "Verifying tables exist..."
           psql -h localhost -U test_user -d test_db -c "\dt"
 
-      # - name: Run tests with coverage
-      #   env:
-      #     DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
-      #     POSTGRES_DB: test_db
-      #     POSTGRES_USER: test_user
-      #     POSTGRES_PASSWORD: test_password
-      #     POSTGRES_HOST: localhost
-      #     POSTGRES_PORT: 5432
-      #     DEBUG: "False"
-      #     SECRET_KEY: test-secret-key
-      #     DJANGO_SETTINGS_MODULE: savannah_test.test_settings
-      #     TESTING: "True"
-      #   run: |
-      #     cd savannah_test
-      #     coverage run --source='.' manage.py test
-      #     coverage xml
+      - name: Run tests with coverage
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          DEBUG: "False"
+          SECRET_KEY: test-secret-key
+          DJANGO_SETTINGS_MODULE: savannah_test.test_settings
+          TESTING: "True"
+        run: |
+          cd savannah_test
+          echo "🧪 Running tests..."
+          python -m pytest --tb=short -v
+          echo "✅ Tests completed"
 
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v2
-      #   with:
-      #     file: ./savannah_test/coverage.xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: ./savannah_test/coverage.xml
+        continue-on-error: true
 
   deploy:
     needs: test
@@ -85,12 +87,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
-          vercel-args: "--prod"
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
 
-          
+      - name: Deploy to VPS Server
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          echo " Starting deployment to VPS server..."
+
+          # Copy Django project files
+          scp -r -o StrictHostKeyChecking=no \
+            --exclude='venv' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='.git' \
+            savannah_test/* $SSH_USER@$SSH_HOST:/var/www/savannah/savannah_test/
+
+          # Copy requirements.txt
+          scp -o StrictHostKeyChecking=no requirements.txt $SSH_USER@$SSH_HOST:/var/www/savannah/
+
+          # Install dependencies and restart service
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST << 'EOF'
+            echo " Installing dependencies..."
+            cd /var/www/savannah
+            pip3 install -r requirements.txt --quiet
+            
+            echo " Restarting Django service..."
+            pkill -f 'python3 manage.py runserver' || true
+            sleep 2
+            cd /var/www/savannah/savannah_test
+            nohup python3 manage.py runserver 0.0.0.0:8003 > /dev/null 2>&1 &
+            sleep 3
+            
+            echo " Checking service status..."
+            if curl -s -o /dev/null -w '%{http_code}' http://localhost:8003/api/auth/oidc-info/ | grep -q "200"; then
+              echo " Deployment successful - Service is running"
+            else
+              echo " Service may not be responding"
+              exit 1
+            fi
+          EOF
+
+          echo " Deployment completed successfully!"
+          echo "Application is available at: http://$SSH_HOST:8003"
