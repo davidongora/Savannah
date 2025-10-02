@@ -21,7 +21,7 @@ export POSTGRES_DB=customer_order_db
 export POSTGRES_USER=your_user
 export POSTGRES_PASSWORD=your_password
 export SECRET_KEY=your_secret
-export MOBILE_SASA_API_TOKEN=jiTISsK2kmrtpEpL724i0x0TJiGnZt1yfTSBozWoMTDul7GkwldCS7SbCjPR
+export MOBILE_SASA_API_TOKEN='your_token'
 
 # Run
 python manage.py runserver 0.0.0.0:8003
@@ -45,13 +45,13 @@ curl -X POST http://185.240.51.176:8003/api/auth/test-token/ \
 curl -X POST http://185.240.51.176:8003/api/customers/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name": "John Doe", "code": "CUST001", "phone": "+254712345678"}'
+  -d '{"name": "John Doe", "code": "CUST001", "phone_number": "+254712345678"}'
 
 # 4. Create order (sends SMS)
 curl -X POST http://185.240.51.176:8003/api/orders/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"customer_id": 1, "item": "Product", "amount": 99.99}'
+  -d '{"customer_code": 1, "item": "Product", "amount": 99.99}'
 `
 
 ## Endpoints
